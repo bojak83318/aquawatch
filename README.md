@@ -9,7 +9,7 @@ Self-hosted end-to-end aquarium fish health monitoring using:
 - **Gemini Vision API** for natural language health summaries
 - **Home Assistant** for alerts and PTZ control
 - **Tailscale** for zero-open-port remote access
-- Runs on **k3s** on Proxmox N100
+- Runs on **k3s** on a dedicated Proxmox host with **RTX 5090** GPU
 
 ## Architecture
 
