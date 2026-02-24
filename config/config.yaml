@@ -1,0 +1,85 @@
+camera:
+  rtsp_url: "rtsp://username:password@192.168.20.10:554/stream=0"
+  snapshot_url: "http://192.168.20.10/jpeg"
+  ptz_base_url: "http://192.168.20.10/ptz"
+  frame_width: 2304
+  frame_height: 1296
+  fps: 10
+
+zones:
+  surface:
+    y_min: 0.0
+    y_max: 0.15
+  midwater:
+    y_min: 0.15
+    y_max: 0.75
+  substrate:
+    y_min: 0.75
+    y_max: 1.0
+  corner_left:
+    x_min: 0.0
+    x_max: 0.15
+  corner_right:
+    x_min: 0.85
+    x_max: 1.0
+
+detection:
+  model_path: "/models/aquawatch_best.pt"
+  disease_model_path: "/models/wellfish_disease.onnx"
+  confidence_threshold: 0.70
+  iou_threshold: 0.45
+  device: "cuda"
+
+behaviour:
+  history_window: 5           # frames to track per fish
+  lethargy_delta_px: 10       # max movement px to flag lethargic
+  surface_frames_threshold: 4 # of last N frames near surface = alert
+  isolation_distance_pct: 0.4 # fraction of frame width = isolated
+  baseline_count_window: 20   # frames to establish baseline fish count
+  count_drop_threshold: 0.25  # 25% drop triggers alert
+
+thresholds:
+  # From Nature 2023 - s41598-023-48057-w
+  velocity_lethargy_drop: 0.40  # 40% drop from baseline = lethargic
+  o2_surface_gasping_mgL: 4.0   # below 4mg/L expect surface gasping
+  temp_lethargy_celsius: 30.0   # above 30C expect lethargy
+
+gemini:
+  model: "gemini-2.0-flash"
+  max_tokens: 512
+  call_on_anomaly_only: true
+  snapshot_sequence_count: 5
+  prompt_template: |
+    You are an expert aquarist and fish health diagnostician.
+    These {n} images are sequential snapshots from a freshwater aquarium
+    taken {interval} seconds apart.
+
+    My automated system flagged: {flagged_behaviours}
+    Possible causes identified: {possible_causes}
+
+    Please:
+    1. Visually confirm or deny the flagged behaviour
+    2. Identify any additional visible symptoms (fin condition, colouration, posture)
+    3. Provide a plain-English health summary in 2 sentences
+    4. Suggest one immediate action
+
+    Respond as JSON:
+    {{
+      "confirmed": bool,
+      "additional_symptoms": [str],
+      "summary": str,
+      "action": str,
+      "urgency": "LOW|MEDIUM|HIGH|CRITICAL"
+    }}
+
+home_assistant:
+  webhook_url: "http://homeassistant.local:8123/api/webhook/aquawatch_alert"
+  token: "${HA_TOKEN}"
+
+notifications:
+  min_interval_minutes: 15   # don't spam same alert
+  urgency_map:
+    LOW: "none"
+    MEDIUM: "notify"
+    HIGH: "notify_urgent"
+    CRITICAL: "notify_urgent"

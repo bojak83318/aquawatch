@@ -1,0 +1,18 @@
+path: /data/dataset
+train: images/train
+val: images/val
+
+nc: 12
+names:
+  0: guppy
+  1: betta
+  2: neon_tetra
+  3: goldfish
+  4: angelfish
+  5: molly
+  6: platy
+  7: corydoras
+  8: pleco
+  9: danio
+  10: rasbora
+  11: unknown_freshwater

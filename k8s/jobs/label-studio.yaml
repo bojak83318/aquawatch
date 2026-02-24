@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: label-studio
+  namespace: aquawatch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: label-studio
+  template:
+    metadata:
+      labels:
+        app: label-studio
+    spec:
+      containers:
+      - name: label-studio
+        image: heartexlabs/label-studio:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED
+          value: "true"
+        - name: LOCAL_FILES_DOCUMENT_ROOT
+          value: /data
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: aquawatch-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: label-studio
+  namespace: aquawatch
+spec:
+  selector:
+    app: label-studio
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP

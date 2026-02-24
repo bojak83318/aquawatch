@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aquawatch-config
+  namespace: aquawatch
+data:
+  config.yaml: |
+    camera:
+      rtsp_url: "rtsp://username:password@192.168.20.10:554/stream=0"
+      frame_width: 2304
+      frame_height: 1296
+      fps: 10
+    zones:
+      surface:
+        y_min: 0.0
+        y_max: 0.15
+      midwater:
+        y_min: 0.15
+        y_max: 0.75
+      substrate:
+        y_min: 0.75
+        y_max: 1.0
+    detection:
+      model_path: "/models/aquawatch_best.pt"
+      disease_model_path: "/models/wellfish_disease.onnx"
+      confidence_threshold: 0.70
+      iou_threshold: 0.45
+      device: "cuda"
+    behaviour:
+      history_window: 5
+      lethargy_delta_px: 10
+      surface_frames_threshold: 4
+      isolation_distance_pct: 0.4
+      baseline_count_window: 20
+      count_drop_threshold: 0.25
+    gemini:
+      model: "gemini-2.0-flash"
+      call_on_anomaly_only: true
+      snapshot_sequence_count: 5
+    home_assistant:
+      webhook_url: "http://homeassistant.local:8123/api/webhook/aquawatch_alert"
+      token: ""
+    notifications:
+      min_interval_minutes: 15

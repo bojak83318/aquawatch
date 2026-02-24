@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aquawatch
+  namespace: aquawatch
+  labels:
+    app: aquawatch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aquawatch
+  template:
+    metadata:
+      labels:
+        app: aquawatch
+    spec:
+      containers:
+      - name: aquawatch
+        image: ghcr.io/yourname/aquawatch:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aquawatch-secrets
+              key: GEMINI_API_KEY
+        - name: HA_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: aquawatch-secrets
+              key: HA_TOKEN
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+            nvidia.com/gpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+            nvidia.com/gpu: "1"
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: models
+          mountPath: /models
+        - name: data
+          mountPath: /data
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: aquawatch-config
+      - name: models
+        persistentVolumeClaim:
+          claimName: aquawatch-models
+      - name: data
+        persistentVolumeClaim:
+          claimName: aquawatch-data
+      nodeSelector:
+        nvidia.com/gpu.present: "true"

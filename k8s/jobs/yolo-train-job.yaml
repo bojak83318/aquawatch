@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: aquawatch-yolo-train
+  namespace: aquawatch
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: trainer
+        image: ultralytics/ultralytics:latest
+        command:
+        - yolo
+        - detect
+        - train
+        - data=/data/dataset/fish.yaml
+        - model=yolov8m.pt
+        - epochs=200
+        - imgsz=640
+        - batch=32
+        - project=/data/runs
+        - name=aquawatch_fish
+        - device=0
+        - patience=30
+        - save=True
+        - exist_ok=True
+        resources:
+          limits:
+            nvidia.com/gpu: "2"
+            memory: "16Gi"
+          requests:
+            nvidia.com/gpu: "2"
+            memory: "8Gi"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: models
+          mountPath: /models
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: aquawatch-data
+      - name: models
+        persistentVolumeClaim:
+          claimName: aquawatch-models
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
