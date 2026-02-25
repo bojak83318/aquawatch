@@ -1310,7 +1310,7 @@ HEREDOC
 # ============================================================
 cat > requirements.txt << 'HEREDOC'
 ultralytics==8.2.0
-onnxruntime-gpu==1.17.3
+onnxruntime-gpu==1.23.2
 opencv-python-headless==4.9.0.80
 google-generativeai==0.5.4
 fastapi==0.111.0
